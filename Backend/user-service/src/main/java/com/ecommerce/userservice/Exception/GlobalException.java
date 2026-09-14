@@ -19,12 +19,6 @@ public class GlobalException {
         return  buildResponse(HttpStatus.FORBIDDEN,ex.getMessage());
     }
 
-    public ResponseEntity<Map<String,Object>> AuthenticationEntryPoint(AuthenticationEntryPoint ex){
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-    public ResponseEntity<Map<String,Object>> JwtAuthenticationEntryPoint(JwtAuthenticationEntryPoint ex){
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
 
 
     public ResponseEntity<Map<String,Object>> UserAlreadyExists(UserAlreadyExists ex){

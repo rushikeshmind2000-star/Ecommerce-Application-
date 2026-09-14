@@ -1,92 +1,60 @@
 package com.ecommerce.userservice.Security;
 
-import com.TechPulse.LearnSpringSecurity.Exception.AccessDeniedException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    AccessDeniedException accessDeniedException;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-
     @Bean
-    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
 
-        AuthenticationEntryPoint jwtAuthenticationEntryPoint;
-        AccessDeniedHandler jwtAccessDeniedHandler;
-        http.csrf(csrf -> csrf.disable())
+        http
+                .csrf(csrf -> csrf.disable())
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // Public endpoints
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/register",
-                                "/auth/login"
-                                ,"/health"
-
+                                "/actuator/health"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/admin").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/customer").hasRole("CUSTOMER")
-                        .anyRequest().authenticated())
 
+                        // Admin APIs
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
 
+                        // User APIs
+                        .requestMatchers("/api/users/**")
+                        .hasAnyRole("USER", "ADMIN")
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        // Everything else
+                        .anyRequest()
+                        .authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(jwt ->
+                                jwt.jwtAuthenticationConverter(
+                                        new KeycloakJwtAuthenticationConverter()
+                                )
+                        )
+                );
 
         return http.build();
     }
-
-
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration)
-            throws Exception {
-
-        return configuration.getAuthenticationManager();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider(
-            UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
-
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailsService);
-
-
-        provider.setPasswordEncoder(passwordEncoder);
-
-        return provider;
-    }
-
 }
