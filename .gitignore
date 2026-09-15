@@ -1,0 +1,9 @@
+# IDE configuration
+Backend/.idea/
+Backend/.vscode/
+
+# Maven/Gradle build output
+Backend/**/target/
+
+# If you ever add other build‑tool folders, keep them ignored as well
+# (e.g., “out/” for IntelliJ, “build/” for Gradle, etc.)
