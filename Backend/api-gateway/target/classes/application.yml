@@ -1,49 +1,67 @@
 server:
-  port: 8080
-
+  port: 8085
 spring:
   application:
     name: api-gateway
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:development}
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
+
       routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
 
-        - id: product-service
-          uri: lb://product-service
+        - id: user-service-route
+          uri: lb://USER-SERVICE
           predicates:
-            - Path=/api/products/**
+            - Path=/api/userservice/**,/api/users/**,/api/auth/**,/api/admin/**
 
-        - id: order-service
-          uri: lb://order-service
+        - id: product-service-route
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/products/**,/api/categories/**
+
+        - id: order-service-route
+          uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/orders/**
 
-        - id: payment-service
-          uri: lb://payment-service
+        - id: payment-service-route
+          uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/payments/**
 
-        - id: inventory-service
-          uri: lb://inventory-service
-          predicates:
-            - Path=/api/inventory/**
-
-        - id: notification-service
-          uri: lb://notification-service
+        - id: notification-service-route
+          uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+
+
   instance:
     prefer-ip-address: true
+
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG

@@ -5,11 +5,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/admin")
-public class AdminController {
+@RequestMapping("/api/userservice")
+public class UserserviceHealthController {
 
-    @GetMapping("/hello")
+    @GetMapping("/getHealth")
     public String hello() {
-        return "Hello Admin";
+        return "Hello Health is good for user service module";
     }
 }

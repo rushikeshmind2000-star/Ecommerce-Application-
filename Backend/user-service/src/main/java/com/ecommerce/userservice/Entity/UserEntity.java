@@ -1,62 +1,35 @@
- package com.ecommerce.userservice.Entity;
+package com.ecommerce.userservice.Entity;
 
-import com.ecommerce.userservice.Enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Table(
-        name = "users",
-        indexes = {
-                @Index(name = "idx_user_email", columnList = "email")
-        }
-)
-@Builder
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @Column(
-            nullable = false,
-            unique = true,
-            length = 100
-    )
+    @Column(nullable = false, unique = true)
+    private String keycloakUserId;
+
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
-    private String password;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    @Builder.Default
-    private
-    Role role = Role.CUSTOMER;
+    private String firstName;
 
     @Column(nullable = false)
-    @Builder.Default
-    private Boolean active = true;
+    private String lastName;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @Column(nullable = false, unique = true)
+    private String mobile;
 }

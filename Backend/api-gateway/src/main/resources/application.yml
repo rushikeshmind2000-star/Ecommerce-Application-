@@ -1,3 +1,5 @@
+server:
+  port: 8085
 spring:
   application:
     name: api-gateway
@@ -9,16 +11,18 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+
       routes:
+
         - id: user-service-route
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/api/users/**, /api/auth/**
+            - Path=/api/userservice/**,/api/users/**,/api/auth/**,/api/admin/**
 
         - id: product-service-route
           uri: lb://PRODUCT-SERVICE
           predicates:
-            - Path=/api/products/**, /api/categories/**
+            - Path=/api/products/**,/api/categories/**
 
         - id: order-service-route
           uri: lb://ORDER-SERVICE
@@ -35,14 +39,29 @@ spring:
           predicates:
             - Path=/api/notifications/**
 
-server:
-  port: 8080
+
+
+  instance:
+    prefer-ip-address: true
+
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,gateway,metrics
+
   endpoint:
     health:
       show-details: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG

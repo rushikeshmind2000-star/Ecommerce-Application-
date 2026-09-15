@@ -38,16 +38,18 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Spring Security -->
+        <!-- Source: https://mvnrepository.com/artifact/org.keycloak/keycloak-core -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-core</artifactId>
+            <version>26.7.2</version>
+            <scope>compile</scope>
         </dependency>
 
-        <!-- OAuth2 Resource Server -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-admin-client</artifactId>
+            <version>26.0.12</version>
         </dependency>
 
         <!-- Eureka Client -->
