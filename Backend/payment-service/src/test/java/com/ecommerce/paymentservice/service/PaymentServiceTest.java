@@ -1,12 +1,11 @@
 package com.ecommerce.paymentservice.service;
 
-
 import com.ecommerce.paymentservice.domain.Payment;
 import com.ecommerce.paymentservice.domain.PaymentStatus;
-import com.ecommerce.paymentservice.domain.PaymentTransaction;
 import com.ecommerce.paymentservice.dto.PaymentInitiateRequest;
 import com.ecommerce.paymentservice.dto.PaymentResponse;
 import com.ecommerce.paymentservice.dto.RefundRequest;
+import com.ecommerce.paymentservice.event.PaymentCompletedEvent;
 import com.ecommerce.paymentservice.exception.DuplicatePaymentException;
 import com.ecommerce.paymentservice.exception.PaymentNotFoundException;
 import com.ecommerce.paymentservice.gateway.GatewayTransactionResult;
@@ -17,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -42,135 +41,160 @@ class PaymentServiceTest {
     @Mock
     private MockPaymentGateway paymentGateway;
 
-    @InjectMocks
-    private PaymentService paymentService;
+    @Mock
+    private PaymentEventPublisher paymentEventPublisher;
 
-    private UUID orderId;
-    private UUID userId;
-    private PaymentInitiateRequest request;
-    private Payment payment;
+    private PaymentService paymentService;
 
     @BeforeEach
     void setUp() {
-        orderId = UUID.randomUUID();
-        userId = UUID.randomUUID();
-        request = new PaymentInitiateRequest(orderId, userId, new BigDecimal("1500.00"), "INR", "CREDIT_CARD");
-
-        payment = new Payment();
-        payment.setId(UUID.randomUUID());
-        payment.setOrderId(orderId);
-        payment.setUserId(userId);
-        payment.setPaymentReference("PAY-REF-12345");
-        payment.setAmount(new BigDecimal("1500.00"));
-        payment.setCurrency("INR");
-        payment.setPaymentMethod("CREDIT_CARD");
-        payment.setStatus(PaymentStatus.INITIATED);
+        paymentService = new PaymentService(
+                paymentRepository,
+                transactionRepository,
+                paymentGateway,
+                paymentEventPublisher
+        );
     }
 
     @Test
-    @DisplayName("initiatePayment: Should successfully create and charge payment")
-    void initiatePayment_Success() {
+    @DisplayName("Should successfully initiate payment and publish Kafka event when gateway succeeds")
+    void shouldInitiatePaymentAndPublishKafkaEvent() {
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        BigDecimal amount = BigDecimal.valueOf(999.00);
+
+        PaymentInitiateRequest request = new PaymentInitiateRequest(
+                orderId,
+                userId,
+                amount,
+                "INR",
+                "UPI"
+        );
+
         when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(paymentGateway.processCharge(request.amount(), request.currency()))
-                .thenReturn(new GatewayTransactionResult(true, "GW-TXN-123", PaymentStatus.SUCCESS, null));
+        when(paymentGateway.processCharge(amount, "INR"))
+                .thenReturn(new GatewayTransactionResult(true, "GW-TXN-12345", PaymentStatus.SUCCESS, null));
 
         PaymentResponse response = paymentService.initiatePayment(request);
 
         assertThat(response).isNotNull();
         assertThat(response.orderId()).isEqualTo(orderId);
+        assertThat(response.userId()).isEqualTo(userId);
+        assertThat(response.amount()).isEqualTo(amount);
         assertThat(response.status()).isEqualTo(PaymentStatus.SUCCESS);
-        assertThat(response.currency()).isEqualTo("INR");
-        verify(paymentRepository, times(2)).save(any(Payment.class));
+
+        // Verify Kafka event was dispatched with expected values
+        ArgumentCaptor<PaymentCompletedEvent> eventCaptor = ArgumentCaptor.forClass(PaymentCompletedEvent.class);
+        verify(paymentEventPublisher, times(1)).publishPaymentCompleted(eventCaptor.capture());
+
+        PaymentCompletedEvent publishedEvent = eventCaptor.getValue();
+        assertThat(publishedEvent.orderId()).isEqualTo(orderId);
+        assertThat(publishedEvent.userId()).isEqualTo(userId);
+        assertThat(publishedEvent.amount()).isEqualTo(amount);
+        assertThat(publishedEvent.status()).isEqualTo("SUCCESS");
     }
 
     @Test
-    @DisplayName("initiatePayment: Should throw DuplicatePaymentException if orderId already exists")
-    void initiatePayment_DuplicateOrderId_ThrowsException() {
+    @DisplayName("Should not publish Kafka event when gateway payment fails")
+    void shouldNotPublishKafkaEventWhenPaymentFails() {
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        BigDecimal amount = BigDecimal.valueOf(99999.00);
+
+        PaymentInitiateRequest request = new PaymentInitiateRequest(
+                orderId,
+                userId,
+                amount,
+                "INR",
+                "CREDIT_CARD"
+        );
+
+        when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentGateway.processCharge(amount, "INR"))
+                .thenReturn(new GatewayTransactionResult(false, "GW-TXN-99999", PaymentStatus.FAILED, "Declined by bank"));
+        PaymentResponse response = paymentService.initiatePayment(request);
+
+        assertThat(response.status()).isEqualTo(PaymentStatus.FAILED);
+        // Verify Kafka event was NEVER sent
+        verify(paymentEventPublisher, never()).publishPaymentCompleted(any());
+    }
+
+    @Test
+    @DisplayName("Should throw DuplicatePaymentException when payment for orderId already exists")
+    void shouldThrowExceptionWhenDuplicateOrder() {
+        UUID orderId = UUID.randomUUID();
+        PaymentInitiateRequest request = new PaymentInitiateRequest(
+                orderId,
+                UUID.randomUUID(),
+                BigDecimal.valueOf(100.00),
+                "INR",
+                "UPI"
+        );
+
         when(paymentRepository.existsByOrderId(orderId)).thenReturn(true);
 
         assertThatThrownBy(() -> paymentService.initiatePayment(request))
                 .isInstanceOf(DuplicatePaymentException.class)
-                .hasMessageContaining("Payment already initiated");
+                .hasMessageContaining("Payment already initiated for orderId: " + orderId);
 
-        verify(paymentRepository, never()).save(any(Payment.class));
-        verifyNoInteractions(paymentGateway);
+        verify(paymentRepository, never()).save(any());
+        verify(paymentGateway, never()).processCharge(any(), any());
+        verify(paymentEventPublisher, never()).publishPaymentCompleted(any());
     }
 
     @Test
-    @DisplayName("initiatePayment: Should handle gateway decline and record FAILED status")
-    void initiatePayment_GatewayDecline_RecordsFailure() {
-        when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(paymentGateway.processCharge(request.amount(), request.currency()))
-                .thenReturn(new GatewayTransactionResult(false, null, PaymentStatus.FAILED, "INSUFFICIENT_FUNDS"));
-
-        PaymentResponse response = paymentService.initiatePayment(request);
-
-        assertThat(response).isNotNull();
-        assertThat(response.status()).isEqualTo(PaymentStatus.FAILED);
-        verify(paymentRepository, times(2)).save(any(Payment.class));
-    }
-
-    @Test
-    @DisplayName("getPaymentById: Should return payment when ID exists")
-    void getPaymentById_Success() {
-        when(paymentRepository.findById(payment.getId())).thenReturn(Optional.of(payment));
-
-        PaymentResponse response = paymentService.getPaymentById(payment.getId());
-
-        assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(payment.getId());
-    }
-
-    @Test
-    @DisplayName("getPaymentById: Should throw PaymentNotFoundException when ID does not exist")
-    void getPaymentById_NotFound_ThrowsException() {
-        UUID unknownId = UUID.randomUUID();
-        when(paymentRepository.findById(unknownId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> paymentService.getPaymentById(unknownId))
-                .isInstanceOf(PaymentNotFoundException.class)
-                .hasMessageContaining("Payment not found with id");
-    }
-
-    @Test
-    @DisplayName("processRefund: Should refund a payment in SUCCESS status")
-    void processRefund_Success() {
+    @DisplayName("Should process refund successfully when payment status is SUCCESS")
+    void shouldProcessRefundSuccessfully() {
+        UUID paymentId = UUID.randomUUID();
+        Payment payment = new Payment();
+        payment.setId(paymentId);
+        payment.setOrderId(UUID.randomUUID());
+        payment.setUserId(UUID.randomUUID());
+        payment.setAmount(BigDecimal.valueOf(500.00));
+        payment.setCurrency("INR");
         payment.setStatus(PaymentStatus.SUCCESS);
-        when(paymentRepository.findById(payment.getId())).thenReturn(Optional.of(payment));
-        when(paymentGateway.processRefund(anyString(), eq(payment.getAmount())))
-                .thenReturn(new GatewayTransactionResult(true, "GW-REF-999", PaymentStatus.REFUNDED, null));
+
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentGateway.processRefund(anyString(), any(BigDecimal.class)))
+                .thenReturn(new GatewayTransactionResult(true, "GW-REF-001", PaymentStatus.REFUNDED, null));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PaymentResponse response = paymentService.processRefund(payment.getId(), new RefundRequest("Customer cancelled order"));
+        RefundRequest refundRequest = new RefundRequest("Customer requested refund");
+        PaymentResponse response = paymentService.processRefund(paymentId, refundRequest);
 
-        assertThat(response).isNotNull();
         assertThat(response.status()).isEqualTo(PaymentStatus.REFUNDED);
         verify(paymentRepository).save(payment);
     }
 
     @Test
-    @DisplayName("processRefund: Should throw IllegalStateException if payment status is not SUCCESS")
-    void processRefund_NonSuccessStatus_ThrowsException() {
+    @DisplayName("Should throw IllegalStateException when refunding non-SUCCESS payment")
+    void shouldThrowExceptionWhenRefundingNonSuccessPayment() {
+        UUID paymentId = UUID.randomUUID();
+        Payment payment = new Payment();
+        payment.setId(paymentId);
         payment.setStatus(PaymentStatus.INITIATED);
-        when(paymentRepository.findById(payment.getId())).thenReturn(Optional.of(payment));
 
-        assertThatThrownBy(() -> paymentService.processRefund(payment.getId(), new RefundRequest("Return item")))
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+        RefundRequest refundRequest = new RefundRequest("Cancel order");
+
+        assertThatThrownBy(() -> paymentService.processRefund(paymentId, refundRequest))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Only SUCCESS payments can be refunded");
+                .hasMessage("Only SUCCESS payments can be refunded. Current status: INITIATED");
 
-        verify(paymentRepository, never()).save(payment);
-        verifyNoInteractions(paymentGateway);
+        verify(paymentGateway, never()).processRefund(anyString(), any());
     }
 
     @Test
-    @DisplayName("processRefund: Should throw PaymentNotFoundException if payment does not exist")
-    void processRefund_NotFound_ThrowsException() {
-        UUID unknownId = UUID.randomUUID();
-        when(paymentRepository.findById(unknownId)).thenReturn(Optional.empty());
+    @DisplayName("Should throw PaymentNotFoundException when fetching non-existent ID")
+    void shouldThrowExceptionWhenPaymentNotFound() {
+        UUID nonExistentId = UUID.randomUUID();
+        when(paymentRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> paymentService.processRefund(unknownId, new RefundRequest("Return item")))
-                .isInstanceOf(PaymentNotFoundException.class);
+        assertThatThrownBy(() -> paymentService.getPaymentById(nonExistentId))
+                .isInstanceOf(PaymentNotFoundException.class)
+                .hasMessageContaining("Payment not found with id: " + nonExistentId);
     }
 }

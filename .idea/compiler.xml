@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -9,11 +10,19 @@
         <module name="inventory-service" />
         <module name="payment-service" />
         <module name="api-gateway" />
-        <module name="product-service" />
-        <module name="order-service" />
         <module name="user-service" />
         <module name="eureka-server" />
         <module name="notification-service" />
+      </profile>
+      <profile name="Annotation profile for E-Commerce Microservices" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
+        </processorPath>
+        <module name="product-service" />
+        <module name="order-service" />
       </profile>
     </annotationProcessing>
   </component>
