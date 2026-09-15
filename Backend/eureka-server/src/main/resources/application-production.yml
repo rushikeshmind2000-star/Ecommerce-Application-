@@ -1,0 +1,17 @@
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST:eureka-server}
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${EUREKA_USERNAME:admin}:${EUREKA_PASSWORD:changeit}@${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    enable-self-preservation: true
+    eviction-interval-timer-in-ms: 60000
+
+logging:
+  level:
+    root: WARN
+    com.ecommerce.eureka: INFO
+    com.netflix.eureka: WARN

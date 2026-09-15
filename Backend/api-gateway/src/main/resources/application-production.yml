@@ -1,0 +1,13 @@
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://${EUREKA_USERNAME:admin}:${EUREKA_PASSWORD:changeit}@${EUREKA_HOST:eureka-server}:8761/eureka/
+
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud.gateway: INFO
