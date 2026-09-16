@@ -1,4 +1,3 @@
-
 package com.ecommerce.paymentservice.service;
 
 import com.ecommerce.paymentservice.domain.Payment;
@@ -7,6 +6,7 @@ import com.ecommerce.paymentservice.domain.PaymentTransaction;
 import com.ecommerce.paymentservice.dto.PaymentInitiateRequest;
 import com.ecommerce.paymentservice.dto.PaymentResponse;
 import com.ecommerce.paymentservice.dto.RefundRequest;
+import com.ecommerce.paymentservice.event.PaymentCompletedEvent;
 import com.ecommerce.paymentservice.exception.DuplicatePaymentException;
 import com.ecommerce.paymentservice.exception.PaymentNotFoundException;
 import com.ecommerce.paymentservice.gateway.GatewayTransactionResult;
@@ -28,13 +28,16 @@ public class PaymentService {
     private final PaymentRepository paymentserviceRepository;
     private final PaymentTransactionRepository transactionRepository;
     private final MockPaymentGateway paymentserviceGateway;
+    private final PaymentEventPublisher paymentEventPublisher;
 
     public PaymentService(PaymentRepository paymentserviceRepository,
                           PaymentTransactionRepository transactionRepository,
-                          MockPaymentGateway paymentserviceGateway) {
+                          MockPaymentGateway paymentserviceGateway,
+                          PaymentEventPublisher paymentEventPublisher) {
         this.paymentserviceRepository = paymentserviceRepository;
         this.transactionRepository = transactionRepository;
         this.paymentserviceGateway = paymentserviceGateway;
+        this.paymentEventPublisher = paymentEventPublisher;
     }
 
     @Transactional
@@ -73,6 +76,20 @@ public class PaymentService {
 
         Payment finalPayment = paymentserviceRepository.save(savedPayment);
         log.info("Payment reference {} processed with status: {}", finalPayment.getPaymentReference(), finalPayment.getStatus());
+
+        // 4. Publish Kafka Event if payment succeeded
+        if (finalPayment.getStatus() == PaymentStatus.SUCCESS) {
+            PaymentCompletedEvent event = new PaymentCompletedEvent(
+                    finalPayment.getId(),
+                    finalPayment.getOrderId(),
+                    finalPayment.getUserId(),
+                    "customer@example.com", // Default placeholder until added to PaymentInitiateRequest
+                    finalPayment.getAmount(),
+                    finalPayment.getCurrency(),
+                    finalPayment.getStatus().name()
+            );
+            paymentEventPublisher.publishPaymentCompleted(event);
+        }
 
         return mapToResponse(finalPayment);
     }
