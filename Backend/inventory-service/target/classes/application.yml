@@ -1,45 +1,27 @@
 server:
-  port: 8085
+  port: 8086
 
 spring:
   application:
     name: inventory-service
-<<<<<<< HEAD
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/ecommerce_inventory_db
+    url: jdbc:postgresql://localhost:5432/inventory_db
     username: postgres
     password: tiger
     driver-class-name: org.postgresql.Driver
-
-=======
-  datasource:
-    url: jdbc:mysql://localhost:3306/inventory_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
->>>>>>> origin/dev-rushikesh
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-<<<<<<< HEAD
         dialect: org.hibernate.dialect.PostgreSQLDialect
-=======
-        dialect: org.hibernate.dialect.MySQLDialect
->>>>>>> origin/dev-rushikesh
         format_sql: true
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/dev-rushikesh
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
   instance:
     prefer-ip-address: true
 
@@ -47,15 +29,4 @@ management:
   endpoints:
     web:
       exposure:
-<<<<<<< HEAD
         include: health,info
-
-  eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-=======
-        include: health,info
->>>>>>> origin/dev-rushikesh
