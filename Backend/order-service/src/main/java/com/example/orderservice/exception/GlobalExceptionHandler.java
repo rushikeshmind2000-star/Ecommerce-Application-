@@ -1,5 +1,6 @@
 package com.example.orderservice.exception;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -105,6 +106,39 @@ public class GlobalExceptionHandler {
                         HttpStatus.METHOD_NOT_ALLOWED.value(),
                         "Method Not Allowed",
                         "HTTP method '" + ex.getMethod() + "' is not supported for this endpoint."
+                ));
+    }
+
+    // ------------------------------------------------------------------
+    // 503 — Service unavailable (downstream service down)
+    // ------------------------------------------------------------------
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailable(ServiceUnavailableException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ErrorResponse.of(
+                        HttpStatus.SERVICE_UNAVAILABLE.value(),
+                        "Service Unavailable",
+                        ex.getMessage()
+                ));
+    }
+
+    // ------------------------------------------------------------------
+    // 503 — Circuit Breaker OPEN (Resilience4j)
+    // ------------------------------------------------------------------
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<ErrorResponse> handleCircuitBreakerOpen(CallNotPermittedException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ErrorResponse.of(
+                        HttpStatus.SERVICE_UNAVAILABLE.value(),
+                        "Circuit Breaker Open",
+                        "The service is temporarily unavailable due to repeated failures. " +
+                        "Please try again in a few moments."
                 ));
     }
 

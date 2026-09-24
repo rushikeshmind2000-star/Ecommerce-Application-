@@ -11,6 +11,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class InventoryServiceApplication {
 
     public static void main(String[] args) {
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
         SpringApplication.run(InventoryServiceApplication.class, args);
     }
 

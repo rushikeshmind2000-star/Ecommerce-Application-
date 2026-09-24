@@ -1,45 +1,44 @@
 server:
-  port: 8085
+  port: 8080
 
 spring:
   application:
     name: inventory-service
-<<<<<<< HEAD
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: inventory-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.type.mapping: com.example.orderservice.dto.OrderCreatedEvent:com.ecommerce.inventoryservice.dto.OrderCreatedEvent,com.example.orderservice.dto.OrderCancelledEvent:com.ecommerce.inventoryservice.dto.OrderCancelledEvent
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/ecommerce_inventory_db
+    url: jdbc:postgresql://localhost:5432/order_db?options=-c%20timezone=UTC
     username: postgres
-    password: tiger
+    password: password
     driver-class-name: org.postgresql.Driver
 
-=======
-  datasource:
-    url: jdbc:mysql://localhost:3306/inventory_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
->>>>>>> origin/dev-rushikesh
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-<<<<<<< HEAD
         dialect: org.hibernate.dialect.PostgreSQLDialect
-=======
-        dialect: org.hibernate.dialect.MySQLDialect
->>>>>>> origin/dev-rushikesh
         format_sql: true
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/dev-rushikesh
   instance:
     prefer-ip-address: true
 
@@ -47,7 +46,6 @@ management:
   endpoints:
     web:
       exposure:
-<<<<<<< HEAD
         include: health,info
 
   eureka:
@@ -56,6 +54,3 @@ management:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
-=======
-        include: health,info
->>>>>>> origin/dev-rushikesh

@@ -24,6 +24,7 @@
     </properties>
 
     <modules>
+        <module>common-dto</module>
         <module>eureka-server</module>
         <module>api-gateway</module>
         <module>user-service</module>

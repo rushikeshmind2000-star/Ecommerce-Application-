@@ -1,5 +1,6 @@
 server:
   port: 8085
+
 spring:
   application:
     name: api-gateway
@@ -14,54 +15,173 @@ spring:
 
       routes:
 
+        # ── User Service ───────────────────────────────────────────────────────
         - id: user-service-route
           uri: lb://USER-SERVICE
           predicates:
             - Path=/api/userservice/**,/api/users/**,/api/auth/**,/api/admin/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userServiceCB
+                fallbackUri: forward:/fallback/user-service
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+                methods: GET,HEAD
+                backoff:
+                  firstBackoff: 500ms
+                  maxBackoff: 2000ms
+                  factor: 2
+                  basedOnPreviousValue: false
 
+        # ── Product Service ────────────────────────────────────────────────────
         - id: product-service-route
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/products/**,/api/categories/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: productServiceCB
+                fallbackUri: forward:/fallback/product-service
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+                methods: GET,HEAD
+                backoff:
+                  firstBackoff: 500ms
+                  maxBackoff: 2000ms
+                  factor: 2
+                  basedOnPreviousValue: false
 
+        # ── Order Service ──────────────────────────────────────────────────────
         - id: order-service-route
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/orders/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: orderServiceCB
+                fallbackUri: forward:/fallback/order-service
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+                methods: GET,HEAD
+                backoff:
+                  firstBackoff: 500ms
+                  maxBackoff: 2000ms
+                  factor: 2
+                  basedOnPreviousValue: false
 
+        # ── Payment Service ────────────────────────────────────────────────────
         - id: payment-service-route
           uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/payments/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: paymentServiceCB
+                fallbackUri: forward:/fallback/payment-service
+            # NOTE: No Retry on POST/payment — retrying payments is dangerous (double-charge risk)
 
+        # ── Notification Service ───────────────────────────────────────────────
         - id: notification-service-route
           uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notificationServiceCB
+                fallbackUri: forward:/fallback/notification-service
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+                methods: GET,HEAD
 
-
-
+eureka:
   instance:
     prefer-ip-address: true
-
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+# ─── Resilience4j Circuit Breaker Configuration ─────────────────────────────────
+resilience4j:
+  circuitbreaker:
+    instances:
+      userServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        eventConsumerBufferSize: 10
+      productServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        eventConsumerBufferSize: 10
+      orderServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        eventConsumerBufferSize: 10
+      paymentServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        eventConsumerBufferSize: 10
+      notificationServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 60
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        eventConsumerBufferSize: 10
+
+# ─── Actuator / Management ────────────────────────────────────────────────────────
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway,metrics
-
+        include: health,info,gateway,metrics,circuitbreakers,circuitbreakerevents
   endpoint:
     health:
       show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
 
+# ─── Logging ────────────────────────────────────────────────────────────────     
 logging:
   level:
     root: INFO
     org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.loadbalancer: DEBUG
+    io.github.resilience4j: DEBUG

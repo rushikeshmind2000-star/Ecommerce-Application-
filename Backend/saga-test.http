@@ -1,0 +1,35 @@
+### 1. Test Saga by creating a full Order (Using the main OrderController)
+# This will save the order in DB and trigger the saga
+POST http://localhost:8085/api/orders
+Content-Type: application/json
+
+{
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "shippingAddress": "123 Test Street, Test City",
+  "billingAddress": "123 Test Street, Test City",
+  "currency": "INR",
+  "items": [
+    {
+      "productId": "123e4567-e89b-12d3-a456-426614174001",
+      "productName": "Saga Test Product",
+      "sku": "SKU-12345",
+      "quantity": 2,
+      "unitPrice": 500.00
+    }
+  ]
+}
+
+### 2. Test Saga by publishing directly to Kafka (Using OrderTestKafkaController)
+# Use this if you just want to simulate the order created event directly in Kafka
+POST http://localhost:8085/api/orders/test/publish
+Content-Type: application/json
+
+{
+  "orderId": "123e4567-e89b-12d3-a456-426614174002",
+  "productId": "123e4567-e89b-12d3-a456-426614174001",
+  "quantity": 2
+}
+
+### 3. Check Order Status (Verify if Saga updated the order)
+GET http://localhost:8085/api/orders/123e4567-e89b-12d3-a456-426614174002
+Accept: application/json

@@ -43,6 +43,12 @@ public class Order {
     @Column(name = "status", nullable = false, length = 20)
     private OrderStatus status;
 
+    @Column(name = "payment_status", length = 20)
+    private String paymentStatus; // PENDING, PROCESSED, FAILED
+
+    @Column(name = "inventory_status", length = 20)
+    private String inventoryStatus; // PENDING, RESERVED, FAILED
+
     /** Sum of all order-item totals. */
     @Column(name = "total_amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal totalAmount;

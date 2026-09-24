@@ -5,7 +5,7 @@ spring:
   application:
     name: product-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/product_db
+    url: jdbc:postgresql://localhost:5432/product_db?options=-c%20timezone=UTC
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
