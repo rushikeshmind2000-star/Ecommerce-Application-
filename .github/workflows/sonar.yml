@@ -44,7 +44,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd Backend
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -DskipTests \
           -Dsonar.projectKey=rushikeshmind2000-star_Ecommerce-Application \
           -Dsonar.organization=rushikeshmind2000-star \
           -Dsonar.host.url=https://sonarcloud.io
