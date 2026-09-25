@@ -13,8 +13,6 @@ public class UserResponse {
 
     private UUID id;
 
-    private String keycloakUserId;
-
     private String firstName;
 
     private String lastName;
@@ -22,4 +20,8 @@ public class UserResponse {
     private String email;
 
     private String mobile;
+
+    private String role;
+
+    private String status;
 }

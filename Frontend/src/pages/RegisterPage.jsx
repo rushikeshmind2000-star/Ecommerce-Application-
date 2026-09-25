@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, User, Phone, Store, CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { registerUser } from '../api/userApi';
 
 export default function RegisterPage() {
   const { login, addToast } = useApp();
@@ -10,7 +11,7 @@ export default function RegisterPage() {
   // Fields mirror UserRequest DTO
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '',
-    password: '', confirmPassword: '', mobile: '',
+    password: '', confirmPassword: '', mobile: '', role: 'CUSTOMER',
   });
   const [errors, setErrors]   = useState({});
   const [showPwd, setShowPwd] = useState(false);
@@ -39,12 +40,26 @@ export default function RegisterPage() {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    login({ email: form.email, firstName: form.firstName, lastName: form.lastName, mobile: form.mobile });
-    addToast('Account created successfully! Welcome to ShopNest.', 'success');
-    setLoading(false);
-    navigate('/dashboard');
+    try {
+      // Real API call → POST /api/users/register
+      const user = await registerUser({
+        firstName: form.firstName,
+        lastName:  form.lastName,
+        email:     form.email,
+        password:  form.password,
+        mobile:    form.mobile,
+        role:      form.role,
+      });
+      login(user);
+      addToast('Account created successfully! Welcome to ShopNest.', 'success');
+      navigate('/dashboard');
+    } catch (err) {
+      addToast(err.message || 'Registration failed. Please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <div className="auth-layout" style={{ padding: 'var(--space-6) 0' }}>
@@ -131,6 +146,21 @@ export default function RegisterPage() {
                   placeholder="Re-enter password" value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)} />
               </div>
               {errors.confirmPassword && <span className="form-error">{errors.confirmPassword}</span>}
+            </div>
+
+            {/* Role Selection */}
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label className="form-label">I want to register as a: <span className="required">*</span></label>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input type="radio" name="role" value="CUSTOMER" checked={form.role === 'CUSTOMER'} onChange={e => set('role', e.target.value)} />
+                  Customer
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input type="radio" name="role" value="VENDOR" checked={form.role === 'VENDOR'} onChange={e => set('role', e.target.value)} />
+                  Vendor
+                </label>
+              </div>
             </div>
 
             {/* Terms */}

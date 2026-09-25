@@ -5,19 +5,6 @@ import {
   CreditCard, Warehouse, Users, LogOut, Store, Tag, ChevronRight
 } from 'lucide-react';
 
-const navItems = [
-  { label: 'Main', type: 'section' },
-  { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
-  { path: '/products',   label: 'Products',   icon: Package },
-  { path: '/cart',       label: 'Cart',       icon: ShoppingCart, badge: true },
-  { path: '/orders',     label: 'My Orders',  icon: ClipboardList },
-
-  { label: 'Management', type: 'section' },
-  { path: '/inventory',  label: 'Inventory',  icon: Warehouse },
-  { path: '/payments',   label: 'Payments',   icon: CreditCard },
-  { path: '/categories', label: 'Categories', icon: Tag },
-];
-
 export default function Sidebar({ open, onClose }) {
   const { user, logout, cartCount } = useApp();
   const navigate  = useNavigate();
@@ -26,6 +13,37 @@ export default function Sidebar({ open, onClose }) {
   const go = (path) => { navigate(path); onClose?.(); };
 
   const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : 'U';
+
+  const role = user?.role || 'CUSTOMER';
+
+  let navItems = [];
+  if (role === 'CUSTOMER') {
+    navItems = [
+      { label: 'Main', type: 'section' },
+      { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+      { path: '/products',   label: 'Products',   icon: Package },
+      { path: '/cart',       label: 'Cart',       icon: ShoppingCart, badge: true },
+      { path: '/orders',     label: 'My Orders',  icon: ClipboardList },
+    ];
+  } else if (role === 'VENDOR') {
+    navItems = [
+      { label: 'Vendor Portal', type: 'section' },
+      { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+      { path: '/products',   label: 'My Products', icon: Package },
+      { path: '/orders',     label: 'Orders',      icon: ClipboardList },
+      { path: '/inventory',  label: 'Inventory',   icon: Warehouse },
+      { path: '/payments',   label: 'Payments',    icon: CreditCard },
+    ];
+  } else if (role === 'ADMIN') {
+    navItems = [
+      { label: 'Admin Portal', type: 'section' },
+      { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+      { path: '/users',      label: 'Users',      icon: Users },
+      { path: '/vendors',    label: 'Vendors',    icon: Store },
+      { path: '/products',   label: 'All Products', icon: Package },
+      { path: '/categories', label: 'Categories', icon: Tag },
+    ];
+  }
 
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`}>

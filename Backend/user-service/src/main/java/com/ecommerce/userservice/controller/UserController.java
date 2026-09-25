@@ -3,7 +3,6 @@ package com.ecommerce.userservice.controller;
 import com.ecommerce.userservice.DTO.UserRequest;
 import com.ecommerce.userservice.DTO.UserResponse;
 import com.ecommerce.userservice.Service.UserService;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,8 +16,8 @@ import java.util.UUID;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Slf4j
-@SecurityRequirement(name = "keycloak")
 public class UserController {
+
 
     private final UserService userService;
 

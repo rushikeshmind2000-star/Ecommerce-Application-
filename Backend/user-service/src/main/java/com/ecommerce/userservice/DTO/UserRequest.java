@@ -32,4 +32,7 @@ public class UserRequest {
             message = "Invalid mobile number"
     )
     private String mobile;
+
+    // Optional role for registration, defaults to CUSTOMER if null
+    private String role;
 }

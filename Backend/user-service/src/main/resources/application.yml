@@ -7,11 +7,28 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:development}
 
+  # ─── PostgreSQL Configuration (Commented Out) ──────────────────────────────
+  # datasource:
+  #   url: jdbc:postgresql://localhost:5432/order_db?options=-c%20timezone=UTC
+  #   username: postgres
+  #   password: password
+  #   driver-class-name: org.postgresql.Driver
+  #
+  # jpa:
+  #   hibernate:
+  #     ddl-auto: update
+  #   show-sql: true
+  #   properties:
+  #     hibernate:
+  #       format_sql: true
+  #       dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ─── MySQL Configuration ─────────────────────────────────────────────────────
   datasource:
-    url: jdbc:postgresql://localhost:5432/order_db?options=-c%20timezone=UTC
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:mysql://localhost:3306/user_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: Rushee@2002
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
@@ -20,7 +37,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.MySQLDialect
 
 eureka:
   instance:
@@ -32,12 +49,6 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-keycloak:
-  server-url: http://localhost:8080
-  realm: ecommerce
-  admin-username: admin
-  admin-password: admin123
-  admin-client-id: admin-cli
 
 management:
   endpoints:
@@ -48,6 +59,4 @@ management:
 
 springdoc:
   swagger-ui:
-    oauth:
-      client-id: swagger-client
-      use-pkce-with-authorization-code-grant: true
+    path: /swagger-ui.html

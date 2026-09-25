@@ -3,6 +3,9 @@ package com.ecommerce.userservice.Entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import com.ecommerce.userservice.Enums.Role;
+import com.ecommerce.userservice.Enums.Status;
+
 import java.util.UUID;
 
 @Entity
@@ -19,10 +22,10 @@ public class UserEntity {
     private UUID id;
 
     @Column(nullable = false, unique = true)
-    private String keycloakUserId;
-
-    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
+    private String password;
 
     @Column(nullable = false)
     private String firstName;
@@ -32,4 +35,12 @@ public class UserEntity {
 
     @Column(nullable = false, unique = true)
     private String mobile;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status;
 }

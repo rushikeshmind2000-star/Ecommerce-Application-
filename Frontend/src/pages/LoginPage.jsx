@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Store, ArrowRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { fetchAllUsers } from '../api/userApi';
 
 export default function LoginPage() {
   const { login, addToast } = useApp();
@@ -28,12 +29,25 @@ export default function LoginPage() {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    login({ email: form.email, firstName: 'John', lastName: 'Doe', mobile: '9876543210' });
-    addToast('Welcome back! Login successful.', 'success');
-    setLoading(false);
-    navigate('/dashboard');
+    try {
+      // Fetch users from backend and find by email
+      const users = await fetchAllUsers();
+      const found = users.find(u => u.email === form.email);
+      if (!found) {
+        addToast('No account found with this email.', 'error');
+        return;
+      }
+      // Login with real user data from backend
+      login(found);
+      addToast(`Welcome back, ${found.firstName}!`, 'success');
+      navigate('/dashboard');
+    } catch (err) {
+      addToast(err.message || 'Login failed. Please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <div className="auth-layout">
@@ -111,21 +125,46 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="auth-divider">or continue with demo</div>
+          <div className="auth-divider">or explore demo accounts</div>
 
-          <button
-            type="button"
-            className="btn btn-secondary btn-full"
-            onClick={() => handleSubmit({ preventDefault: () => {} }) || (setForm({ email: 'demo@shopnest.com', password: 'demo123' }))}
-            style={{ marginBottom: 'var(--space-4)' }}
-            id="demo-login"
-            onClick={() => {
-              login({ email: 'demo@shopnest.com', firstName: 'Demo', lastName: 'User', mobile: '9876543210' });
-              navigate('/dashboard');
-            }}
-          >
-            Use Demo Account
-          </button>
+          <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ flex: 1, padding: '0.5rem', fontSize: '13px' }}
+              onClick={() => {
+                login({ email: 'customer@shopnest.com', firstName: 'Demo', lastName: 'Customer', role: 'CUSTOMER', status: 'ACTIVE' });
+                addToast('Logged in as Customer', 'success');
+                navigate('/dashboard');
+              }}
+            >
+              Demo Customer
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ flex: 1, padding: '0.5rem', fontSize: '13px' }}
+              onClick={() => {
+                login({ email: 'vendor@shopnest.com', firstName: 'Demo', lastName: 'Vendor', role: 'VENDOR', status: 'ACTIVE' });
+                addToast('Logged in as Vendor', 'success');
+                navigate('/dashboard');
+              }}
+            >
+              Demo Vendor
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ flex: 1, padding: '0.5rem', fontSize: '13px' }}
+              onClick={() => {
+                login({ email: 'admin@shopnest.com', firstName: 'System', lastName: 'Admin', role: 'ADMIN', status: 'ACTIVE' });
+                addToast('Logged in as Admin', 'success');
+                navigate('/dashboard');
+              }}
+            >
+              Demo Admin
+            </button>
+          </div>
 
           <div className="auth-footer">
             Don&apos;t have an account?{' '}

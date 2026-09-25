@@ -87,7 +87,15 @@ export function AppProvider({ children }) {
   }, [user, orders, addToast]);
 
   const login = useCallback((userData) => {
-    setUser({ id: 'u1', keycloakUserId: 'kc-' + userData.email, firstName: userData.firstName || 'John', lastName: userData.lastName || 'Doe', email: userData.email, mobile: userData.mobile || '9876543210' });
+    setUser({
+      id:        userData.id        || 'u1',
+      firstName: userData.firstName || 'User',
+      lastName:  userData.lastName  || '',
+      email:     userData.email,
+      mobile:    userData.mobile    || '',
+      role:      userData.role      || 'CUSTOMER',
+      status:    userData.status    || 'ACTIVE',
+    });
   }, []);
 
   const logout = useCallback(() => { setUser(null); setCart([]); }, []);
