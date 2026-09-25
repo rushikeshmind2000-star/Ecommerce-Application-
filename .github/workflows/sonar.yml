@@ -45,6 +45,6 @@ jobs:
         run: |
           cd Backend/user-service
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=rushikeshmind2000-star_Ecommerce-Application- \
-          -Dsonar.organization=rushikeshmind \
+          -Dsonar.projectKey=rushikeshmind2000-star_Ecommerce-Application \
+          -Dsonar.organization=rushikeshmind2000-star \
           -Dsonar.host.url=https://sonarcloud.io
