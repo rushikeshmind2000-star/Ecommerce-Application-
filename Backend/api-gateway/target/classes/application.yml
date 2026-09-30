@@ -13,6 +13,13 @@ spring:
           enabled: true
           lower-case-service-id: true
 
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
       routes:
 
         # ── User Service ───────────────────────────────────────────────────────
@@ -61,7 +68,7 @@ spring:
         - id: order-service-route
           uri: lb://ORDER-SERVICE
           predicates:
-            - Path=/api/orders/**
+            - Path=/api/orders/**,/api/monitor/**
           filters:
             - name: CircuitBreaker
               args:
@@ -185,3 +192,7 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.loadbalancer: DEBUG
     io.github.resilience4j: DEBUG
+
+# ─── JWT Configuration (MUST match user-service secret exactly) ──────────────
+jwt:
+  secret: ecommerce-super-secret-key-must-be-at-least-32-chars

@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import {
   LayoutDashboard, Package, ShoppingCart, ClipboardList,
-  CreditCard, Warehouse, Users, LogOut, Store, Tag, ChevronRight
+  CreditCard, Warehouse, Users, LogOut, Store, Tag, ChevronRight, Plus
 } from 'lucide-react';
 
 export default function Sidebar({ open, onClose }) {
@@ -20,28 +20,45 @@ export default function Sidebar({ open, onClose }) {
   if (role === 'CUSTOMER') {
     navItems = [
       { label: 'Main', type: 'section' },
-      { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
-      { path: '/products',   label: 'Products',   icon: Package },
-      { path: '/cart',       label: 'Cart',       icon: ShoppingCart, badge: true },
-      { path: '/orders',     label: 'My Orders',  icon: ClipboardList },
+      { path: '/customer/home',      label: 'Home',       icon: LayoutDashboard },
+      { path: '/customer/products',  label: 'Products',   icon: Package },
+      { path: '/customer/cart',      label: 'Cart',       icon: ShoppingCart, badge: true },
+      { path: '/customer/orders',    label: 'My Orders',  icon: ClipboardList },
+      { path: '/customer/wishlist',  label: 'Wishlist',   icon: Tag },
+      { path: '/customer/profile',   label: 'Profile',    icon: Users },
     ];
   } else if (role === 'VENDOR') {
     navItems = [
       { label: 'Vendor Portal', type: 'section' },
-      { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
-      { path: '/products',   label: 'My Products', icon: Package },
-      { path: '/orders',     label: 'Orders',      icon: ClipboardList },
-      { path: '/inventory',  label: 'Inventory',   icon: Warehouse },
-      { path: '/payments',   label: 'Payments',    icon: CreditCard },
+      { path: '/vendor/dashboard',  label: 'Dashboard',   icon: LayoutDashboard },
+      { path: '/vendor/products',   label: 'My Products', icon: Package },
+      { path: '/vendor/add-product',label: 'Add Product', icon: Plus },
+      { path: '/vendor/inventory',  label: 'Inventory',   icon: Warehouse },
+      { path: '/vendor/orders',     label: 'Orders',      icon: ClipboardList },
+      { path: '/vendor/payments',   label: 'Payments',    icon: CreditCard },
+      { path: '/customer/profile',  label: 'Profile',     icon: Users },
     ];
   } else if (role === 'ADMIN') {
     navItems = [
       { label: 'Admin Portal', type: 'section' },
-      { path: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
-      { path: '/users',      label: 'Users',      icon: Users },
-      { path: '/vendors',    label: 'Vendors',    icon: Store },
-      { path: '/products',   label: 'All Products', icon: Package },
-      { path: '/categories', label: 'Categories', icon: Tag },
+      { path: '/admin/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+      { path: '/admin/users',      label: 'Users',      icon: Users },
+      { path: '/admin/vendors',    label: 'Vendors',    icon: Store },
+      { path: '/admin/products',   label: 'All Products', icon: Package },
+      { path: '/admin/categories', label: 'Categories', icon: Tag },
+      { path: '/admin/orders',     label: 'Orders',     icon: ClipboardList },
+      { path: '/admin/payments',   label: 'Payments',   icon: CreditCard },
+      { path: '/admin/inventory',  label: 'Inventory',  icon: Warehouse },
+      { path: '/admin/returns',    label: 'Returns',    icon: Tag },
+      { path: '/admin/reports',    label: 'Reports',    icon: Tag },
+      { path: '/customer/profile', label: 'Profile',    icon: Users },
+    ];
+  } else if (role === 'DELIVERY') {
+    navItems = [
+      { label: 'Delivery Portal', type: 'section' },
+      { path: '/delivery/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+      { path: '/delivery/assigned',   label: 'Assigned Orders', icon: Package },
+      { path: '/customer/profile',    label: 'Profile',    icon: Users },
     ];
   }
 

@@ -93,6 +93,22 @@ public class UserService {
         return mapToResponse(userRepository.save(user));
     }
 
+    public UserResponse updateUserStatus(UUID id, String statusString) {
+
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        try {
+            Status status = Status.valueOf(statusString.toUpperCase());
+            user.setStatus(status);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status provided");
+        }
+
+        return mapToResponse(userRepository.save(user));
+    }
+
     public void deleteUser(UUID id) {
 
         UserEntity user = userRepository.findById(id)
@@ -107,6 +123,7 @@ public class UserService {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
+                .password(user.getPassword())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .mobile(user.getMobile())

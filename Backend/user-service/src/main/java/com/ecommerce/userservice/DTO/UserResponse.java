@@ -21,6 +21,8 @@ public class UserResponse {
 
     private String mobile;
 
+    private String password; // BCrypt hashed — for internal use only, do NOT expose in production
+
     private String role;
 
     private String status;

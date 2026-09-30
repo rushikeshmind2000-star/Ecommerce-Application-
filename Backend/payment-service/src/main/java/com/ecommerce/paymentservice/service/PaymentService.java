@@ -84,6 +84,13 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id: " + id));
     }
 
+    @Transactional(readOnly = true)
+    public PaymentResponse getPaymentByOrderId(UUID orderId) {
+        return paymentserviceRepository.findByOrderId(orderId)
+                .map(this::mapToResponse)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with orderId: " + orderId));
+    }
+
     @Transactional
     public PaymentResponse processRefund(UUID id, RefundRequest refundRequest) {
         Payment payment = paymentserviceRepository.findById(id)

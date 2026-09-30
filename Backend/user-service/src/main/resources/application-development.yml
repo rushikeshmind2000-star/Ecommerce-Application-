@@ -35,3 +35,10 @@ logging:
     com.ecommerce.userservice: DEBUG
     org.springframework.security: DEBUG
     org.springframework.orm.jpa: DEBUG
+
+# ─── JWT Configuration ───────────────────────────────────────────────────────
+jwt:
+  # IMPORTANT: Must be >= 32 characters. Change in production!
+  secret: ecommerce-super-secret-key-must-be-at-least-32-chars
+  access-token-expiry-ms: 3600000    # 1 hour
+  refresh-token-expiry-ms: 86400000  # 24 hours

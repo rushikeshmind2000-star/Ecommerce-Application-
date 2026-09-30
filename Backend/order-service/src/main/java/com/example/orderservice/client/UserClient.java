@@ -35,6 +35,9 @@ public interface UserClient {
     default Object getUserFallback(UUID id, Exception ex) {
         log.warn("[Circuit Breaker] user-service unavailable for userId={}. Reason: {}",
                 id, ex.getMessage());
-        return null;
+        return java.util.Map.of(
+            "error", "User service is unavailable or rejected the request",
+            "reason", ex.getMessage()
+        );
     }
 }

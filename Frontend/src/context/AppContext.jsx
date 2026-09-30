@@ -14,6 +14,8 @@ const MOCK_PRODUCTS = [
   { id:'p6', categoryId:'c2', name:'Adidas Ultra Boost 24', description:'Responsive Boost midsole, Primeknit upper', sku:'ADI-UB24-WHT', price:14999, currency:'INR', status:'ACTIVE', brand:'Adidas', category:'Footwear', rating:4.6, reviews:654, stock:5, reserved:1, sold:220, images:[{id:'i6',imageUrl:'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400',isPrimary:true}] },
   { id:'p7', categoryId:'c5', name:'Levi\'s 511 Slim Fit Jeans', description:'Classic slim fit, premium denim', sku:'LEV-511-32-32', price:4999, currency:'INR', status:'ACTIVE', brand:"Levi's", category:'Apparel', rating:4.4, reviews:2100, stock:200, reserved:10, sold:1200, images:[{id:'i7',imageUrl:'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400',isPrimary:true}] },
   { id:'p8', categoryId:'c1', name:'OnePlus 12', description:'Snapdragon 8 Gen 3, 50W wireless charging', sku:'OP-12-256', price:64999, currency:'INR', status:'OUT_OF_STOCK', brand:'OnePlus', category:'Electronics', rating:4.6, reviews:987, stock:0, reserved:0, sold:320, images:[{id:'i8',imageUrl:'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400',isPrimary:true}] },
+  { id:'p9', categoryId:'c1', name:'Google Pixel 8 Pro', description:'Google Tensor G3, advanced AI features', sku:'GOOG-P8P-128', price:106999, currency:'INR', status:'PENDING_APPROVAL', brand:'Google', category:'Electronics', rating:0, reviews:0, stock:50, reserved:0, sold:0, images:[{id:'i9',imageUrl:'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=400',isPrimary:true}] },
+  { id:'p10', categoryId:'c1', name:'Nothing Phone (2)', description:'Glyph interface, Snapdragon 8+ Gen 1', sku:'NOTH-PH2-256', price:44999, currency:'INR', status:'REJECTED', rejectionReason: 'Incomplete product description and missing certifications.', brand:'Nothing', category:'Electronics', rating:0, reviews:0, stock:20, reserved:0, sold:0, images:[{id:'i10',imageUrl:'https://images.unsplash.com/photo-1621330396167-876a9a7a976c?w=400',isPrimary:true}] },
 ];
 
 const MOCK_ORDERS = [
@@ -26,7 +28,7 @@ const MOCK_ORDERS = [
 export function AppProvider({ children }) {
   const [user, setUser]       = useState(null);
   const [cart, setCart]       = useState([]);
-  const [products]            = useState(MOCK_PRODUCTS);
+  const [products, setProducts] = useState(MOCK_PRODUCTS);
   const [orders, setOrders]   = useState(MOCK_ORDERS);
   const [toasts, setToasts]   = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -66,6 +68,32 @@ export function AppProvider({ children }) {
     );
   }, []);
 
+  const submitProduct = useCallback((productData) => {
+    const newProduct = {
+      id: 'p' + Date.now(),
+      ...productData,
+      status: 'PENDING_APPROVAL',
+      rating: 0,
+      reviews: 0,
+      reserved: 0,
+      sold: 0,
+      currency: 'INR'
+    };
+    setProducts(prev => [...prev, newProduct]);
+    addToast('Product submitted for admin approval!', 'success');
+  }, [addToast]);
+
+  const approveProduct = useCallback((productId) => {
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, status: 'ACTIVE', rejectionReason: null } : p));
+    addToast('Product approved successfully!', 'success');
+  }, [addToast]);
+
+  const rejectProduct = useCallback((productId, reason) => {
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, status: 'REJECTED', rejectionReason: reason } : p));
+    addToast('Product rejected', 'info');
+  }, [addToast]);
+
+
   const placeOrder = useCallback((orderData) => {
     const newOrder = {
       id: 'o' + Date.now(),
@@ -104,7 +132,7 @@ export function AppProvider({ children }) {
   const cartSubtotal = cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
 
   return (
-    <AppContext.Provider value={{ user, login, logout, cart, cartCount, cartSubtotal, addToCart, removeFromCart, updateCartQty, products, orders, placeOrder, toasts, addToast, wishlist, toggleWishlist }}>
+    <AppContext.Provider value={{ user, login, logout, cart, cartCount, cartSubtotal, addToCart, removeFromCart, updateCartQty, products, submitProduct, approveProduct, rejectProduct, orders, placeOrder, toasts, addToast, wishlist, toggleWishlist }}>
       {children}
     </AppContext.Provider>
   );

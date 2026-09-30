@@ -4,15 +4,32 @@ server:
 spring:
   application:
     name: order-service
+  # ─── PostgreSQL Configuration (Commented Out) ──────────────────────────────
+  # datasource:
+  #   url: jdbc:postgresql://localhost:5432/order_db?options=-c%20timezone=UTC
+  #   username: postgres
+  #   password: password
+  # jpa:
+  #   hibernate:
+  #     ddl-auto: update
+  #   show-sql: true
+  #   database-platform: org.hibernate.dialect.PostgreSQLDialect
+  #   properties:
+  #     hibernate:
+  #       format_sql: true
+  #       jdbc.time_zone: UTC
+
+  # ─── MySQL Configuration ─────────────────────────────────────────────────────
   datasource:
-    url: jdbc:postgresql://localhost:5432/order_db?options=-c%20timezone=UTC
-    username: postgres
-    password: password
+    url: jdbc:mysql://localhost:3306/order_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: Rushee@2002
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     properties:
       hibernate:
         format_sql: true

@@ -36,6 +36,9 @@ public interface ProductClient {
     default Object getProductFallback(UUID id, Exception ex) {
         log.warn("[Circuit Breaker] product-service unavailable for productId={}. Reason: {}",
                 id, ex.getMessage());
-        return null;
+        return java.util.Map.of(
+            "error", "Product service is unavailable or rejected the request",
+            "reason", ex.getMessage()
+        );
     }
 }

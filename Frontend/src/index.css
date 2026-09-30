@@ -1363,3 +1363,92 @@ tbody tr:hover { background: var(--gray-50); }
   .auth-card { padding: var(--space-8) var(--space-6); }
   .navbar-search input { width: 200px; }
 }
+
+/* ============================================================
+   Dynamic Animations — Customer UI
+   ============================================================ */
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 1; }
+  70%  { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes countUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* Cart badge pulse */
+.cart-badge {
+  animation: countUp 0.3s ease;
+}
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Smooth category pill */
+.category-pill-active {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+}
+
+/* Product card "added" flash */
+.btn-added {
+  background: var(--success) !important;
+  transform: scale(0.97);
+}
+
+/* Floating label for stat cards */
+.stat-card:hover .stat-value {
+  color: var(--primary);
+  transition: color 0.2s;
+}
+
+/* Wishlist heart beat */
+.wishlist-active {
+  animation: heartBeat 0.4s ease;
+}
+@keyframes heartBeat {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* Scroll indicator for horizontal lists */
+.scroll-fade-right {
+  -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+  mask-image: linear-gradient(to right, black 80%, transparent 100%);
+}
+
+/* Smooth number transition */
+.animated-number {
+  display: inline-block;
+  animation: countUp 0.4s ease;
+}
+
+@keyframes progressBar {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
