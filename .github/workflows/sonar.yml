@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Shallow clones disabled for better Sonar relevancy
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -37,16 +37,16 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Step 1: Run tests + generate JaCoCo XML coverage reports for all modules
-      - name: Run Tests and Generate Coverage Reports
+      # Step 1: Compile, run tests AND generate JaCoCo XML report
+      # The JaCoCo plugin in pom.xml handles prepare-agent + report automatically
+      - name: Run Tests and Generate JaCoCo Coverage Reports
         working-directory: Backend
         run: |
           mvn -B verify \
-            -Djacoco.destFile=target/jacoco.exec \
             -Dmaven.test.failure.ignore=true \
             --no-transfer-progress
 
-      # Step 2: Run SonarCloud analysis pointing to JaCoCo XML reports
+      # Step 2: Run SonarCloud analysis reading the generated JaCoCo XML reports
       - name: SonarCloud Analysis
         working-directory: Backend
         env:
