@@ -3,7 +3,7 @@ package com.example.orderservice.controller;
 import com.example.orderservice.client.PaymentClient;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.client.UserClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,16 +11,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/orders/test-feign")
+@RequiredArgsConstructor
 public class FeignTestController {
 
-    @Autowired
-    private UserClient userClient;
-
-    @Autowired
-    private ProductClient productClient;
-
-    @Autowired
-    private PaymentClient paymentClient;
+    private final UserClient userClient;
+    private final ProductClient productClient;
+    private final PaymentClient paymentClient;
 
     @GetMapping("/users/{id}")
     public ResponseEntity<Object> testUserClient(@PathVariable UUID id) {

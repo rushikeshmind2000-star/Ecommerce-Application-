@@ -39,6 +39,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http
             .cors(org.springframework.security.config.Customizer.withDefaults())
+            // CSRF disabled intentionally: this service is a stateless REST API using JWT Bearer tokens.
+            // CSRF attacks only affect session-cookie-based auth; browsers never auto-send
+            // Authorization headers cross-origin, so CSRF protection is not needed here. // NOSONAR java:S4502
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
