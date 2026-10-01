@@ -40,6 +40,8 @@
         <module>payment-service</module>
         <module>inventory-service</module>
         <module>notification-service</module>
+        <module>cart-service</module>
+        <module>wishlist-service</module>
     </modules>
 
     <dependencyManagement>
