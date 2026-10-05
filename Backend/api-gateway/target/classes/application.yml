@@ -32,6 +32,11 @@ spring:
               args:
                 name: userServiceCB
                 fallbackUri: forward:/fallback/user-service
+                statusCodes:
+                  - 500
+                  - 502
+                  - 503
+                  - 504
             - name: Retry
               args:
                 retries: 3
@@ -53,6 +58,11 @@ spring:
               args:
                 name: productServiceCB
                 fallbackUri: forward:/fallback/product-service
+                statusCodes:
+                  - 500
+                  - 502
+                  - 503
+                  - 504
             - name: Retry
               args:
                 retries: 3
@@ -74,6 +84,11 @@ spring:
               args:
                 name: orderServiceCB
                 fallbackUri: forward:/fallback/order-service
+                statusCodes:
+                  - 500
+                  - 502
+                  - 503
+                  - 504
             - name: Retry
               args:
                 retries: 3
@@ -95,6 +110,11 @@ spring:
               args:
                 name: paymentServiceCB
                 fallbackUri: forward:/fallback/payment-service
+                statusCodes:
+                  - 500
+                  - 502
+                  - 503
+                  - 504
             # NOTE: No Retry on POST/payment — retrying payments is dangerous (double-charge risk)
 
         # ── Notification Service ───────────────────────────────────────────────
@@ -107,6 +127,11 @@ spring:
               args:
                 name: notificationServiceCB
                 fallbackUri: forward:/fallback/notification-service
+                statusCodes:
+                  - 500
+                  - 502
+                  - 503
+                  - 504
             - name: Retry
               args:
                 retries: 2
