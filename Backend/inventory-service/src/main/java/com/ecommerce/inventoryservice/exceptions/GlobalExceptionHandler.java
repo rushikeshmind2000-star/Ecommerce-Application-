@@ -22,6 +22,39 @@ public class GlobalExceptionHandler {
                         null));
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProductNotFound(
+            ProductNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse<>(
+                        false,
+                        exception.getMessage(),
+                        null));
+    }
+
+    @ExceptionHandler(ProductServiceUnavailableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProductServiceUnavailable(
+            ProductServiceUnavailableException exception) {
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ApiResponse<>(
+                        false,
+                        exception.getMessage(),
+                        null));
+    }
+
+    @ExceptionHandler(InvalidProductResponseException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidProductResponse(
+            InvalidProductResponseException exception) {
+
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(new ApiResponse<>(
+                        false,
+                        exception.getMessage(),
+                        null));
+    }
+
     @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<ApiResponse<Void>> handleInsufficientStock(
             InsufficientStockException exception) {

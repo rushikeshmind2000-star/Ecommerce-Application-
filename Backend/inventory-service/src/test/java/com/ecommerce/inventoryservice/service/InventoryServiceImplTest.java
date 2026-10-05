@@ -18,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.ecommerce.inventoryservice.client.ProductClient;
+import com.ecommerce.inventoryservice.client.dto.ProductResponse;
 import com.ecommerce.inventoryservice.dto.ConfirmStockRequest;
 import com.ecommerce.inventoryservice.dto.InventoryRequest;
 import com.ecommerce.inventoryservice.dto.InventoryResponse;
@@ -28,6 +30,8 @@ import com.ecommerce.inventoryservice.entity.InventoryReservation;
 import com.ecommerce.inventoryservice.enums.ReservationStatus;
 import com.ecommerce.inventoryservice.exceptions.InsufficientStockException;
 import com.ecommerce.inventoryservice.exceptions.InventoryNotFoundException;
+import com.ecommerce.inventoryservice.exceptions.InvalidProductResponseException;
+import com.ecommerce.inventoryservice.exceptions.ProductNotFoundException;
 import com.ecommerce.inventoryservice.repository.InventoryRepository;
 import com.ecommerce.inventoryservice.repository.InventoryReservationRepository;
 
@@ -39,6 +43,9 @@ class InventoryServiceImplTest {
 
     @Mock
     private InventoryReservationRepository reservationRepository;
+
+    @Mock
+    private ProductClient productClient;
 
     @InjectMocks
     private InventoryServiceImpl inventoryService;
@@ -55,10 +62,53 @@ class InventoryServiceImplTest {
         when(inventoryRepository.existsById(productId))
                 .thenReturn(false);
 
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setId(productId);
+        when(productClient.getProductById(productId))
+                .thenReturn(productResponse);
+
         inventoryService.createStock(request);
 
+        verify(productClient, times(1)).getProductById(productId);
         verify(inventoryRepository, times(1))
                 .save(any(Inventory.class));
+    }
+
+    @Test
+    void createStock_ShouldNotCreateStock_WhenProductDoesNotExist() {
+        UUID productId = UUID.randomUUID();
+        InventoryRequest request = new InventoryRequest();
+        request.setProductId(productId);
+        request.setQuantity(10);
+
+        when(inventoryRepository.existsById(productId)).thenReturn(false);
+        when(productClient.getProductById(productId))
+                .thenThrow(new ProductNotFoundException("Product not found"));
+
+        assertThrows(
+                ProductNotFoundException.class,
+                () -> inventoryService.createStock(request));
+
+        verify(inventoryRepository, never()).save(any(Inventory.class));
+    }
+
+    @Test
+    void createStock_ShouldNotCreateStock_WhenProductResponseHasDifferentId() {
+        UUID productId = UUID.randomUUID();
+        InventoryRequest request = new InventoryRequest();
+        request.setProductId(productId);
+        request.setQuantity(10);
+
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setId(UUID.randomUUID());
+        when(inventoryRepository.existsById(productId)).thenReturn(false);
+        when(productClient.getProductById(productId)).thenReturn(productResponse);
+
+        assertThrows(
+                InvalidProductResponseException.class,
+                () -> inventoryService.createStock(request));
+
+        verify(inventoryRepository, never()).save(any(Inventory.class));
     }
 
     @Test
@@ -78,6 +128,7 @@ class InventoryServiceImplTest {
                 () -> inventoryService.createStock(request)
         );
 
+        verify(productClient, never()).getProductById(productId);
         verify(inventoryRepository, never())
                 .save(any(Inventory.class));
     }
