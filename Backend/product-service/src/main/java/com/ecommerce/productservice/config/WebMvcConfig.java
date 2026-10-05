@@ -1,0 +1,20 @@
+package com.ecommerce.productservice.config;
+
+import com.ecommerce.productservice.interceptor.RoleAuthInterceptor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+@RequiredArgsConstructor
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    private final RoleAuthInterceptor roleAuthInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(roleAuthInterceptor)
+                .addPathPatterns("/api/**");
+    }
+}

@@ -21,9 +21,17 @@
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <sonar.organization>rushikeshmind2000-star</sonar.organization>
+        <sonar.projectKey>rushikeshmind2000-star_Ecommerce-Application</sonar.projectKey>
+        <sonar.projectName>Ecommerce Application</sonar.projectName>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <modules>
+        <module>common-dto</module>
         <module>eureka-server</module>
         <module>api-gateway</module>
         <module>user-service</module>
@@ -45,5 +53,39 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <!-- SonarQube Maven Plugin -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- JaCoCo Code Coverage Plugin -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <executions>
+                    <!-- Attaches JaCoCo agent before tests run -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!-- Generates XML report at target/site/jacoco/jacoco.xml after tests -->
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

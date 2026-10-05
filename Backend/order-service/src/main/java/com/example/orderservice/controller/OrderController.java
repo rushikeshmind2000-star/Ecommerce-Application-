@@ -86,6 +86,18 @@ public class OrderController {
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get order history for a user",
                description = "Returns all orders placed by the specified user, newest first.")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200", 
+            description = "List of orders belonging to the user",
+            content = @io.swagger.v3.oas.annotations.media.Content(
+                mediaType = "application/json",
+                array = @io.swagger.v3.oas.annotations.media.ArraySchema(
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = OrderDTO.class)
+                )
+            )
+        )
+    })
     public ResponseEntity<List<OrderDTO>> getOrdersByUser(
             @Parameter(description = "Customer UUID") @PathVariable UUID userId) {
 

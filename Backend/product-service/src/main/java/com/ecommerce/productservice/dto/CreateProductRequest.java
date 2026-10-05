@@ -13,21 +13,24 @@ import java.util.UUID;
 public class CreateProductRequest {
     @NotNull(message = "Category ID is mandatory")
     private UUID categoryId;
-    
+
     @NotBlank(message = "Product name is mandatory")
     private String name;
-    
+
     private String description;
-    
+
     @NotBlank(message = "SKU is mandatory")
     private String sku;
-    
+
     @NotNull(message = "Price is mandatory")
     @Positive(message = "Price must be positive")
     private BigDecimal price;
-    
+
     private String currency = "INR";
     private String brand;
-    
+
+    /** ID of the vendor submitting this product */
+    private UUID vendorId;
+
     private List<ProductImageRequest> images;
 }

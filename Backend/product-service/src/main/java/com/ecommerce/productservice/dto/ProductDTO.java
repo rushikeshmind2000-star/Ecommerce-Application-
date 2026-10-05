@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,4 +26,18 @@ public class ProductDTO {
     private ProductStatus status;
     private String brand;
     private List<ProductImageDTO> images;
+
+    // ── Approval-related fields ──────────────────────────────────────
+    private UUID vendorId;
+    private UUID reviewedBy;
+    private LocalDateTime reviewedAt;
+
+    /**
+     * Non-null only when status == REJECTED.
+     * Vendors read this field to understand why their product was rejected.
+     */
+    private String rejectionReason;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -10,8 +10,9 @@ volumes:
   zookeeper_data:
 
 services:
+
   # ==========================================
-  # 1. CORE INFRASTRUCTURE
+  # CORE INFRASTRUCTURE
   # ==========================================
 
   postgres:
@@ -61,8 +62,31 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      - kafka
+    networks:
+      - ecommerce-network
+
+  redis:
+    image: redis:7
+    container_name: product-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
   # ==========================================
-  # 2. DISCOVERY & ROUTING
+  # DISCOVERY & ROUTING
   # ==========================================
 
   eureka-server:
@@ -90,7 +114,7 @@ services:
       - ecommerce-network
 
   # ==========================================
-  # 3. DOMAIN MICROSERVICES
+  # DOMAIN MICROSERVICES
   # ==========================================
 
   user-service:
@@ -121,6 +145,7 @@ services:
     depends_on:
       - postgres
       - eureka-server
+      - redis
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/product_db
       SPRING_DATASOURCE_USERNAME: postgres
@@ -139,6 +164,7 @@ services:
     depends_on:
       - postgres
       - eureka-server
+      - product-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory_db
       SPRING_DATASOURCE_USERNAME: postgres

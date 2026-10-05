@@ -1,0 +1,61 @@
+name: SonarQube Analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build, Test and Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones disabled for better Sonar relevancy
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      # Step 1: Compile, run tests AND generate JaCoCo XML report
+      # The JaCoCo plugin in pom.xml handles prepare-agent + report automatically
+      - name: Run Tests and Generate JaCoCo Coverage Reports
+        working-directory: Backend
+        run: |
+          mvn -B verify \
+            -Dmaven.test.failure.ignore=true \
+            --no-transfer-progress
+
+      # Step 2: Run SonarCloud analysis reading the generated JaCoCo XML reports
+      - name: SonarCloud Analysis
+        working-directory: Backend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=rushikeshmind2000-star_Ecommerce-Application \
+            -Dsonar.organization=rushikeshmind2000-star \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco/jacoco.xml \
+            --no-transfer-progress

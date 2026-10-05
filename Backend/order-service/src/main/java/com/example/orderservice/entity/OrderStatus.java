@@ -9,8 +9,11 @@ package com.example.orderservice.entity;
  */
 public enum OrderStatus {
 
-    /** Order placed but not yet confirmed (e.g. payment pending). */
+    /** Order placed but not yet confirmed (e.g. payment/inventory pending). */
     PENDING,
+
+    /** Saga in progress. */
+    PROCESSING_SAGA,
 
     /** Payment received; order confirmed. */
     CONFIRMED,

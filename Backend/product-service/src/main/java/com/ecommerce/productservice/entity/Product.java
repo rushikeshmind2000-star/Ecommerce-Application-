@@ -47,10 +47,27 @@ public class Product {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private ProductStatus status = ProductStatus.ACTIVE;
+    private ProductStatus status = ProductStatus.PENDING;  // NEW: default to PENDING
 
     @Column
     private String brand;
+
+    // ── Vendor / Approval fields ─────────────────────────────────────
+    /** ID of the vendor who submitted this product */
+    @Column(name = "vendor_id")
+    private UUID vendorId;
+
+    /** Admin who approved/rejected */
+    @Column(name = "reviewed_by")
+    private UUID reviewedBy;
+
+    /** Timestamp when admin made the decision */
+    @Column(name = "reviewed_at")
+    private LocalDateTime reviewedAt;
+
+    /** Reason provided by admin on rejection */
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
