@@ -2,9 +2,12 @@ package com.ecommerce.inventoryservice.service;
 
 import java.util.UUID;
 
+import feign.RetryableException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ecommerce.inventoryservice.client.ProductClient;
+import com.ecommerce.inventoryservice.client.dto.ProductResponse;
 import com.ecommerce.inventoryservice.dto.ConfirmStockRequest;
 import com.ecommerce.inventoryservice.dto.InventoryRequest;
 import com.ecommerce.inventoryservice.dto.InventoryResponse;
@@ -14,7 +17,9 @@ import com.ecommerce.inventoryservice.entity.Inventory;
 import com.ecommerce.inventoryservice.entity.InventoryReservation;
 import com.ecommerce.inventoryservice.enums.ReservationStatus;
 import com.ecommerce.inventoryservice.exceptions.InsufficientStockException;
+import com.ecommerce.inventoryservice.exceptions.InvalidProductResponseException;
 import com.ecommerce.inventoryservice.exceptions.InventoryNotFoundException;
+import com.ecommerce.inventoryservice.exceptions.ProductServiceUnavailableException;
 import com.ecommerce.inventoryservice.repository.InventoryRepository;
 import com.ecommerce.inventoryservice.repository.InventoryReservationRepository;
 
@@ -23,13 +28,16 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryReservationRepository reservationRepository;
+    private final ProductClient productClient;
 
     public InventoryServiceImpl(
             InventoryRepository inventoryRepository,
-            InventoryReservationRepository reservationRepository) {
+            InventoryReservationRepository reservationRepository,
+            ProductClient productClient) {
 
         this.inventoryRepository = inventoryRepository;
         this.reservationRepository = reservationRepository;
+        this.productClient = productClient;
     }
 
     @Override
@@ -39,6 +47,19 @@ public class InventoryServiceImpl implements InventoryService {
         if (inventoryRepository.existsById(request.getProductId())) {
             throw new IllegalArgumentException(
                     "Inventory already exists for product: "
+                            + request.getProductId());
+        }
+
+        ProductResponse product;
+        try {
+            product = productClient.getProductById(request.getProductId());
+        } catch (RetryableException exception) {
+            throw new ProductServiceUnavailableException(
+                    "Product service is unavailable");
+        }
+        if (product == null || !request.getProductId().equals(product.getId())) {
+            throw new InvalidProductResponseException(
+                    "Product service returned invalid data for product: "
                             + request.getProductId());
         }
 

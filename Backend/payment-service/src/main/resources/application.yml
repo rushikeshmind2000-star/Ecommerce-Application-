@@ -1,10 +1,10 @@
 spring:
   application:
     name: payment-service
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:development}
 
-  # ─── MySQL Configuration ─────────────────────────────────────────────────────
   datasource:
     url: jdbc:mysql://localhost:3306/payment_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
@@ -20,6 +20,16 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        spring.json.add.type.headers: false
+
 server:
   port: 8084
 
@@ -34,6 +44,7 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
   endpoint:
     health:
       show-details: always

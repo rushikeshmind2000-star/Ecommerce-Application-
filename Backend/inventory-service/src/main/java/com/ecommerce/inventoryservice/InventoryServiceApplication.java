@@ -7,7 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients
+@EnableFeignClients(basePackages = "com.ecommerce.inventoryservice.client")
 public class InventoryServiceApplication {
 
     public static void main(String[] args) {

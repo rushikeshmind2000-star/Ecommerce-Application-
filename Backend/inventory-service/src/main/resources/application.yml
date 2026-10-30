@@ -1,15 +1,39 @@
 server:
-  port: 8080
+  port: 8086
 
 spring:
   application:
     name: inventory-service
+  cloud:
+    openfeign:
+      client:
+        config:
+          product-service:
+            connectTimeout: 3000
+            readTimeout: 5000
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_db
+    username: postgres
+    password: tiger
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
 
   kafka:
     bootstrap-servers: localhost:9092
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
     consumer:
       group-id: inventory-group
       auto-offset-reset: earliest
@@ -19,43 +43,10 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.type.mapping: com.example.orderservice.dto.OrderCreatedEvent:com.ecommerce.inventoryservice.dto.OrderCreatedEvent,com.example.orderservice.dto.OrderCancelledEvent:com.ecommerce.inventoryservice.dto.OrderCancelledEvent
 
-  # ─── PostgreSQL Configuration (Commented Out) ──────────────────────────────
-  # datasource:
-  #   url: jdbc:postgresql://localhost:5432/order_db?options=-c%20timezone=UTC
-  #   username: postgres
-  #   password: password
-  #   driver-class-name: org.postgresql.Driver
-  #
-  # jpa:
-  #   hibernate:
-  #     ddl-auto: update
-  #   show-sql: true
-  #   properties:
-  #     hibernate:
-  #       dialect: org.hibernate.dialect.PostgreSQLDialect
-  #       format_sql: true
-
-  # ─── MySQL Configuration ─────────────────────────────────────────────────────
-  datasource:
-    url: jdbc:mysql://localhost:3306/inventory_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: Rushee@2002
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
-
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
-
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
   instance:
     prefer-ip-address: true
 
@@ -64,10 +55,3 @@ management:
     web:
       exposure:
         include: health,info
-
-  eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
